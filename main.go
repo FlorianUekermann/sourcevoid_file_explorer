@@ -12,7 +12,7 @@ import (
 
 func main() {
 	// Read password from enviroment
-	const env = "VOID_DISKEXPLORER_PASSWORD"
+	const env = "VOID_FILE_EXPLORER_PASSWORD"
 	password := os.Getenv(env)
 
 	// Generate password if it wasn't specified by environment variable
