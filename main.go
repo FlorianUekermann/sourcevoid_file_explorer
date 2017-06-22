@@ -36,7 +36,7 @@ func main() {
 		if subtle.ConstantTimeCompare([]byte(password), []byte(requestPassword)) != 1 {
 			http.Error(w, "Enter any user and the password.", http.StatusUnauthorized)
 		} else {
-			http.FileServer(http.Dir("/")).ServeHTTP(w, r)
+			http.FileServer(http.Dir("/home/cuser")).ServeHTTP(w, r)
 		}
 	})
 
