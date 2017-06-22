@@ -41,5 +41,5 @@ func main() {
 	})
 
 	// Start server
-	log.Fatalln(http.ListenAndServe("localhost:8080", nil))
+	log.Fatalln(http.ListenAndServe(":8080", nil))
 }
