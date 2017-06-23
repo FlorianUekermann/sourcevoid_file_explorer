@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -17,7 +16,7 @@ func main() {
 
 	// Generate password if it wasn't specified by environment variable
 	if password == "" {
-		fmt.Println(env, "not set. Generating password...")
+		log.Println(env, "not set. Generating password...")
 		var secret [18]byte
 		if _, err := rand.Read(secret[:]); err != nil {
 			log.Fatalln("Could not generate password:", err.Error())
@@ -26,8 +25,8 @@ func main() {
 	}
 
 	// Write login details to log
-	fmt.Println("Any user is valid.")
-	fmt.Println("The password is:", password)
+	log.Println("Any user is valid.")
+	log.Println("The password is:", password)
 
 	// Authenticate and serve filesystem
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -35,9 +34,8 @@ func main() {
 		_, requestPassword, _ := r.BasicAuth()
 		if subtle.ConstantTimeCompare([]byte(password), []byte(requestPassword)) != 1 {
 			http.Error(w, "Enter any user and the password.", http.StatusUnauthorized)
-		} else {
-			http.FileServer(http.Dir("/home/cuser")).ServeHTTP(w, r)
 		}
+		Browser(w, r)
 	})
 
 	// Start server
