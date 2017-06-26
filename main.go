@@ -28,14 +28,21 @@ func main() {
 	log.Println("Any user is valid.")
 	log.Println("The password is:", password)
 
-	// Authenticate and serve filesystem
+	// Handle requests
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// Authenticate
 		w.Header().Set("WWW-Authenticate", `Basic realm="sourcevoid_diskexplorer"`)
-		_, requestPassword, _ := r.BasicAuth()
-		if subtle.ConstantTimeCompare([]byte(password), []byte(requestPassword)) != 1 {
+		if _, requestPassword, _ := r.BasicAuth(); subtle.ConstantTimeCompare([]byte(password), []byte(requestPassword)) != 1 {
 			http.Error(w, "Enter any user and the password.", http.StatusUnauthorized)
 		}
-		Browser(w, r)
+		// Handle file uploads
+		if err := Upload(r, w); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		// Serve directory contents
+		if err := Browser(w, r); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	})
 
 	// Start server

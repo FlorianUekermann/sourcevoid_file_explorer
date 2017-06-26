@@ -9,48 +9,44 @@ import (
 	"path"
 )
 
-func Browser(w http.ResponseWriter, r *http.Request) {
+func Browser(w http.ResponseWriter, r *http.Request) error {
+	// Extract path from url
 	var p, err = url.PathUnescape(r.URL.Path)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 	p = path.Clean(p)
 	info, err := os.Stat(p)
 	// Check for non-existent files and stat errors
 	if os.IsNotExist(err) {
 		http.NotFound(w, r)
-		return
+		return nil
 	} else if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 	// Serve file contents if not a directory
 	if !info.IsDir() {
 		http.ServeFile(w, r, p)
-		return
+		return nil
 	}
 	// Check if user asked for a deletion
 	if delQuery := r.URL.Query()["delete"]; len(delQuery) > 0 {
 		var delName, err = url.QueryUnescape(delQuery[0])
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return err
 		}
 		os.RemoveAll(path.Join(p, delName))
 	}
 	// List directory contents
 	dir, err := os.Open(p)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 	contents, err := dir.Readdir(0)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
-	fmt.Fprintln(w, "<table>")
+	fmt.Fprintln(w, "<html><form method=\"post\" enctype=\"multipart/form-data\"><input type=\"file\" name=\"upload\"><input type=\"submit\" value=\"Upload\"></form><table>")
 	fmt.Fprintf(w, "<td><a href=\"/%s\">..</a></td>\n", url.PathEscape(path.Join(p, "..")))
 	for _, el := range contents {
 		fmt.Fprintln(w, "<tr>")
@@ -64,5 +60,6 @@ func Browser(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "<td><a href=\"/%s?delete=%s\">delete</a></td>\n", url.PathEscape(p), url.QueryEscape(el.Name()))
 		fmt.Fprintln(w, "</tr>")
 	}
-	fmt.Fprintln(w, "</table>")
+	fmt.Fprintln(w, "</table><html>")
+	return nil
 }
