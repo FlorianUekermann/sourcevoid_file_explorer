@@ -46,6 +46,7 @@ func Browser(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
+	FileInfoListSortByModTime(contents).Sort()
 	fmt.Fprintln(w, "<html><form method=\"post\" enctype=\"multipart/form-data\"><input type=\"file\" name=\"upload\"><input type=\"submit\" value=\"Upload\"></form><table>")
 	fmt.Fprintf(w, "<td><a href=\"/%s\">..</a></td>\n", url.PathEscape(path.Join(p, "..")))
 	for _, el := range contents {
